@@ -3,18 +3,44 @@
 
   angular
     .module('chartDemo')
-    .controller('LineCtrl',["$scope","$wilddogObject",function($scope,$wilddogObject){
+    .controller('LineCtrl',["$scope","$wilddogArray",function($scope,$wilddogArray){
 
-  //$scope.labels = ["January", "February", "March", "April", "May", "June", "July"];
-  $scope.labels = [];
-  $scope.data = [[],[],[]];
-  for(var i=0;i<100;i++){
-    $scope.labels.push(i);
-    $scope.data[0].push(0);
-    $scope.data[1].push(0);
-    $scope.data[2].push(0);
+
+
+  $scope.data = {};
+  $scope.onShow = function(url){
+    var ref = new Wilddog(url);
+    var newData = $wilddogArray(ref).$loaded().then(function(data){
+      data.forEach(function(obj,index){
+        console.log(obj,index);
+        if(typeof obj["$value"] != 'object'){
+          if($scope.data[obj.$id] == null){
+            initSerial($scope.data,obj.$id);
+
+            setInterval(function(){
+              $scope.$apply(function(){
+                var value = obj["$value"];
+                $scope.data[obj.$id].data[0].unshift(value);
+                $scope.data[obj.$id].data[0].pop();
+                console.log($scope.data)
+              });
+
+            },3000);
+          }
+        }
+      })
+    })
   }
-  $scope.series = ['temperature','humidity','pm2.5'];
+
+  var initSerial = function(data,key){
+    data[key] = {"labels":[],"series":[key],"data":[[]]};
+    for(var i=0;i<100;i++){
+      data[key].labels.push(i);
+      data[key].data[0].push(0);
+    }
+  }
+
+/*  $scope.series = ['temperature','humidity','pm2.5'];
   var ref = new Wilddog('https://sky.wilddogio.com');
   var newData = $wilddogObject(ref).$loaded().then(function(data){
     
@@ -33,7 +59,7 @@
       });
     },3000);
   })
-
+*/
   $scope.onClick = function (points, evt) {
     console.log(points, evt);
   };
